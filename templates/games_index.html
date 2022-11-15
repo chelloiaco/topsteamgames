@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+{% block title %}Most played games{% endblock %}
+{% block h1 %}<h1>My most played games</h1>
+<form action="/update_playtime" method="POST">
+    with at least
+    <select class="form-playtime" name="playtime" onchange="this.form.submit()">
+        {% for i in range(100) %}
+            {% set hour_val = i * 5 %}
+            {% if hour_val == session['min_game_time'] | default (config['DEFAULT_MIN_GAME_TIME']) / 60 %}
+                <option value="{{ hour_val * 60 }}" selected>{{ hour_val }}</option>
+            {% else %}
+                <option value="{{ hour_val * 60 }}">{{ hour_val }}</option>
+            {% endif %}
+        {% endfor %}
+    </select>
+    hours of playtime
+</form>
+<br>
+<div class="top-right">{{ games_ls | length }} games</div>{% endblock %}
+
+{% block signout %}
+    {% if session['openid'] %}
+        <button class="btn btn-primary" onclick="location.href='/logout';">Sign Out</button>
+    {% endif %}
+{% endblock %}
+    {% block body %}
+    <div class="row">
+        {% for game in games_ls %}
+            <div class="column">
+                <a href="/game?appid={{ game.appid }}">
+                    <p><img class="shadow"
+                            src="https://cdn.cloudflare.steamstatic.com/steam/apps/{{ game.appid }}/header.jpg?t="></p>
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

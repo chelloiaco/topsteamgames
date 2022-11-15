@@ -1,0 +1,109 @@
+{% extends "layout.html" %}
+{% block title %}{{ game.name }}{% endblock %}
+{% block body %}
+<head>
+    <link rel="icon"
+          href="http://media.steampowered.com/steamcommunity/public/images/apps/{{ game.appid }}/{{ game.img_icon_url }}.jpg">
+</head>
+<div class="header sticky-top">
+    <h1>{{ game.name }}</h1>
+    <h6>Your total playtime: {{ ' %0.2f' | format(game.playtime_forever / 60) }} h</h6>
+    <button class="btn btn-primary" onclick="location.href='/games_index';">Games Index</button>
+</div>
+<div class="content">
+    <div>
+        {% if top_player %}
+        <table class="motd mb-2">
+            <tr>
+                <td rowspan="2">Top player:</td>
+                <td rowspan="2"><a title="{{ top_player.personaname }}" href="{{ top_player.profileurl }}" target="_blank">
+                    <img class="img-avatar" src="{{ top_player.avatar }}"></a></td>
+                <td class="p-0" >{{ top_player.personaname }}</td>
+            </tr>
+            <tr>
+                <td class="p-0" style="text-align: left;"><h6>{{ ' %0.2f' | format(top_player.playtime / 60) }} h</h6></td>
+            </tr>
+        </table>
+            {% if top_msg %}
+                <p class="italic motd">"{{ top_msg.msg }}"</p>
+                <br>
+            {% endif %}
+        {% endif %}
+        <img class="shadow img-game" src="https://cdn.cloudflare.steamstatic.com/steam/apps/{{ game.appid }}/header.jpg?t=">
+        <div class="btn-store">
+            <button class="btn btn-dark"
+                    onclick="window.open('https://store.steampowered.com/app/{{ game.appid }}','_blank')"> Store Page
+            </button>
+        </div>
+    </div>
+    <div class="tab table">
+        <button class="tablinks btn-tab active" onclick="openTab(event, 'News')">News</button>
+        <button class="tablinks btn-tab" onclick="openTab(event, 'My Notes')">My Notes</button>
+        <button class="tablinks btn-tab" onclick="openTab(event, 'MOTD')">MOTD 🌟</button>
+    </div>
+    <div id="News" class="table-responsive-xl tabcontent">
+        <table class="table table-dark table-striped">
+            <tbody>
+            {% for news in news_data %}
+            <tr>
+                <td>
+                    <h2>{{ news.title }} <a class="news-hyperlink" href="{{ news.url}}" target="_blank">🔗</a></h2>
+                    <div class="news">
+                        <h6>Posted by {{ news.feedlabel }} on {{ news.date | ctime }}</h6>
+                        {{ news.contents | safe}}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div id="My Notes" class="tabcontent">
+        <table class="table table-dark table-striped">
+            <tbody>
+            <tr>
+                <td>
+                    <form action="/save_note" method="POST">
+                        <textarea name="note" class="form-control motd-field note-field" maxlength="{{ config.MAX_LEN_NOTE }}"
+                                  placeholder="Enter any personal game notes here">{{ player_notes.msg }}</textarea>
+                        <input type=hidden name="appid" value="{{ game.appid }}">
+                        <input class="btn btn-primary btn-motd" type="submit" value="Save">
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    {% if top_player.steamid | int == steamid %}
+        <div id="MOTD" class="tabcontent">
+            <table class="table table-dark table-striped">
+                <tbody>
+                <tr>
+                    <td>
+                        {% set can_post = False %}
+                        {% if not top_msg %}
+                            {% set can_post = True %}
+                        {% elif time_now() - top_msg.timestamp > config['TIME_GAP'] %}
+                            {% set can_post = True %}
+                        {% endif %}
+                        {% if can_post %}
+                            <p>Congratulations! You are the player with the most amount of playtime on this game!</p>
+                            <form action="/post_motd" method="POST">
+                                <textarea name="motd" class="form-control motd-field" maxlength="{{ config.MAX_LEN_MOTD }}"
+                                          placeholder="Enter a Message Of The Day you'd like everyone to see!"></textarea>
+                                <input type=hidden name="appid" value="{{ game.appid }}">
+                                <input class="btn btn-primary btn-motd" type="submit" value="Post">
+                            </form>
+                        {% else %}
+                            {% set timedelta = top_msg.timestamp  + config['TIME_GAP'] - time_now() %}
+                            <h4>Can't Post a new MOTD</h4>
+                            <p>Sorry, {{ "%.2f"|format(timedelta / 3600) }} hours left until a new <span class="italic">Message of The Day</span> can be posted for this game.</p>
+                        {% endif %}
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

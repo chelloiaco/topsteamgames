@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block title %}Sign in{% endblock %}
+{% block h1 %}<h1 class="center middle"> Sign in to use </h1>{% endblock %}
+{% block body %}
+  <form class="center" action="" method="post">
+    {% if error %}<p class=error><strong>Error:</strong> {{ error }}</p>{% endif %}
+    <p>
+      <input type=hidden name=openid value="https://steamcommunity.com/openid/">
+      <input type=image src="{{ url_for('static', filename='images/sits_small.png') }}" alt="Submit" value="Sign in">
+  </form>
+{% for message in get_flashed_messages() %}
+  <p class="center italic">{{ message }}
+{% endfor %}
+{% endblock %}

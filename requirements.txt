@@ -1,0 +1,10 @@
+Flask~=2.2.2
+Flask-Session
+Flask-OpenID
+Flask-SQLAlchemy
+babel
+requests
+bbcode~=1.1.0
+gunicorn
+python-dotenv~=0.21.0
+SQLAlchemy~=1.4.43
