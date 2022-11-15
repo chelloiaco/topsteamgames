@@ -20,7 +20,6 @@ import urllib.request
 from operator import itemgetter
 
 import bbcode
-from dotenv import load_dotenv
 from flask import Flask, render_template, request, g, session, flash, \
     redirect
 from flask_openid import OpenID
@@ -31,11 +30,13 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 
 from flask_session import Session
 
-load_dotenv()
-
 # setup flask
 app = Flask(__name__)
 if os.getenv('ENV') == 'dev':
+    from dotenv import load_dotenv
+
+    load_dotenv()
+
     app.config.update(
         DATABASE_URI=os.getenv('DATABASE_URI_DEV'),
         TIME_GAP=30,  # 1 day in seconds
