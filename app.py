@@ -265,7 +265,7 @@ def validate_login(resp):
         profileurl = data['profileurl']
 
         db_session.add(Players(int(steamid), personaname, profileurl))
-        db_session.commit()
+        # db_session.commit()
 
     return redirect('/games_index')
 
@@ -326,7 +326,7 @@ def game():
 
             if not top_player_query:
                 db_session.add(Games(appid, steamid))
-                db_session.commit()
+                # db_session.commit()
 
             # Redo the query just in case there wasn't a top_player before
             top_player_query = Games.query.filter_by(appid=appid).first()
