@@ -50,7 +50,7 @@ else:
         uri = uri.replace("postgres://", "postgresql://", 1)
 
     app.config.update(
-        DATABASE_URI=os.getenv('DATABASE_URL'),
+        DATABASE_URI=uri,
         TIME_GAP=86400,  # 1 day in seconds
     )
 
