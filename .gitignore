@@ -63,6 +63,7 @@ db.sqlite3-journal
 
 # Flask stuff:
 instance/
+flask_session
 .webassets-cache
 
 # Scrapy stuff:
@@ -127,3 +128,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# ENV vars
+.env_vars/
+*.env
