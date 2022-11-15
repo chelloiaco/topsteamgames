@@ -43,6 +43,12 @@ if os.getenv('ENV') == 'dev':
         TEMPLATES_AUTO_RELOAD=True,
     )
 else:
+    # Fix for SQLALchemy 1.4.x not connecting to Heroku Postgres
+    uri = os.getenv('DATABASE_URL')
+
+    if uri.startswith("postgres://"):
+        uri = uri.replace("postgres://", "postgresql://", 1)
+
     app.config.update(
         DATABASE_URI=os.getenv('DATABASE_URL'),
         TIME_GAP=86400,  # 1 day in seconds
