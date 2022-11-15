@@ -43,7 +43,7 @@ if os.getenv('ENV') == 'dev':
     )
 else:
     app.config.update(
-        DATABASE_URI=os.getenv('DATABASE_URI_DEV'),
+        DATABASE_URI=os.getenv('DATABASE_URI'),
         TIME_GAP=86400,  # 1 day in seconds
     )
 
