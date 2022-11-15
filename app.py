@@ -105,7 +105,7 @@ parser.add_formatter('previewyoutube', render_youtube)
 
 # setup sqlalchemy
 engine = create_engine(app.config['DATABASE_URI'])
-db_session = scoped_session(sessionmaker(autocommit=False,
+db_session = scoped_session(sessionmaker(autocommit=True,
                                          autoflush=True,
                                          bind=engine))
 Base = declarative_base()
@@ -367,10 +367,10 @@ def game():
                     [db_session.delete(q) for q in Games.query.filter_by(appid=appid).all()]
 
                     db_session.add(Games(appid=appid, top_player_steamid=steamid))
-                    db_session.commit()
+                    # db_session.commit()
             else:
                 db_session.add(Games(appid=appid, top_player_steamid=steamid))
-                db_session.commit()
+                # db_session.commit()
 
             # Get player's notes
             player_notes = GamesNotes.query.filter_by(appid=appid,
@@ -445,7 +445,7 @@ def post_motd():
             if can_post:
                 # Enough time has passed, allow user to post
                 db_session.add(TopMessages(appid=appid, player_steamid=steamid, msg=motd, timestamp=time.time()))
-                db_session.commit()
+                # db_session.commit()
 
         return redirect(f'/game?appid={appid}')
 
@@ -463,7 +463,7 @@ def save_note():
              GamesNotes.query.filter_by(appid=appid, player_steamid=steamid).all()]
 
             db_session.add(GamesNotes(appid=appid, player_steamid=steamid, msg=note))
-            db_session.commit()
+            # db_session.commit()
 
         return redirect(f'/game?appid={appid}')
 
