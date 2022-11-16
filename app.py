@@ -265,7 +265,6 @@ def validate_login(resp):
         profileurl = data['profileurl']
 
         db_session.add(Players(int(steamid), personaname, profileurl))
-        # db_session.commit()
 
     return redirect('/games_index')
 
@@ -326,7 +325,6 @@ def game():
 
             if not top_player_query:
                 db_session.add(Games(appid, steamid))
-                # db_session.commit()
 
             # Redo the query just in case there wasn't a top_player before
             top_player_query = Games.query.filter_by(appid=appid).first()
@@ -363,14 +361,12 @@ def game():
                 if int(session[f'top_player_owned_game_{appid}']['playtime_forever']) < int(
                         session[f'player_owned_game{appid}']['playtime_forever']):
                     # Substitute on the table
-                    print("\nDeleting...")
                     [db_session.delete(q) for q in Games.query.filter_by(appid=appid).all()]
 
                     db_session.add(Games(appid=appid, top_player_steamid=steamid))
-                    # db_session.commit()
+
             else:
                 db_session.add(Games(appid=appid, top_player_steamid=steamid))
-                # db_session.commit()
 
             # Get player's notes
             player_notes = GamesNotes.query.filter_by(appid=appid,
@@ -384,22 +380,28 @@ def game():
                     session.update({f'steam_news_{appid}': json.load(news_url)['appnews']['newsitems']})
 
             to_remove = []
-            for news in session.get(f'steam_news_{appid}', []):
+            for i, news in enumerate(session.get(f'steam_news_{appid}', [])):
+                if '.ru' in news['url']:
+                    to_remove.append(news['gid'])
+                    continue
+
                 if news['feed_type'] == 1:
                     try:
-                        news['contents'] = parser.format(news['contents'].format(
-                            STEAM_CLAN_IMAGE='https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/clans'))
+                        parsed_contents = parser.format(news['contents']).format(
+                            STEAM_CLAN_IMAGE='https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/clans')
+                        session[f'steam_news_{appid}'][i]['parsed_contents'] = parsed_contents
 
                     except KeyError:
-                        to_remove.append(news)
+                        to_remove.append(news['gid'])
                         continue
 
                     except IndexError as ie:
                         print(IndexError, ie)
-                        to_remove.append(news)
+                        to_remove.append(news['gid'])
                         continue
 
-                [session[f'steam_news_{appid}'].remove(n) for n in to_remove]
+                session[f'steam_news_{appid}'] = [n for n in session[f'steam_news_{appid}'] if
+                                                  n['gid'] not in to_remove]
 
             return render_template('game.html',
                                    steamid=steamid,
@@ -445,7 +447,6 @@ def post_motd():
             if can_post:
                 # Enough time has passed, allow user to post
                 db_session.add(TopMessages(appid=appid, player_steamid=steamid, msg=motd, timestamp=time.time()))
-                # db_session.commit()
 
         return redirect(f'/game?appid={appid}')
 
@@ -463,7 +464,6 @@ def save_note():
              GamesNotes.query.filter_by(appid=appid, player_steamid=steamid).all()]
 
             db_session.add(GamesNotes(appid=appid, player_steamid=steamid, msg=note))
-            # db_session.commit()
 
         return redirect(f'/game?appid={appid}')
 

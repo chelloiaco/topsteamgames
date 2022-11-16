@@ -50,7 +50,11 @@
                     <h2>{{ news.title }} <a class="news-hyperlink" href="{{ news.url}}" target="_blank">🔗</a></h2>
                     <div class="news">
                         <h6>Posted by {{ news.feedlabel }} on {{ news.date | ctime }}</h6>
-                        {{ news.contents | safe}}
+                        {% if news.feed_type == 1 %}
+                            {{ news.parsed_contents | safe}}
+                        {% else %}
+                            {{ news.contents | safe}}
+                        {% endif %}
                     </div>
                 </td>
             </tr>
@@ -58,7 +62,7 @@
             </tbody>
         </table>
     </div>
-    <div id="My Notes" class="tabcontent">
+    <div id="My Notes" class="tabcontent" style="display: none;">
         <table class="table table-dark table-striped">
             <tbody>
             <tr>
@@ -75,7 +79,7 @@
         </table>
     </div>
     {% if top_player.steamid | int == steamid %}
-        <div id="MOTD" class="tabcontent">
+        <div id="MOTD" class="tabcontent" style="display: none;">
             <table class="table table-dark table-striped">
                 <tbody>
                 <tr>
