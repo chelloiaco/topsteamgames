@@ -38,6 +38,8 @@ app.config.update(
     SECRET_KEY=os.getenv('STEAM_API_KEY'),
     MAX_LEN_MOTD=280,  # Length of a tweet
     MAX_LEN_NOTE=5000,
+    SESSION_TYPE='filesystem',
+    SESSION_PERMANENT=False,
     DEFAULT_MIN_GAME_TIME=300,
 )
 
@@ -62,12 +64,10 @@ else:
 
     app.config.update(
         DATABASE_URI=uri,
-        SESSION_TYPE='filesystem',
-        SESSION_PERMANENT=False,
         TIME_GAP=86400,  # 1 day in seconds
     )
 
-    Session(app)
+Session(app)
 
 # setup flask-openid
 oid = OpenID(app, safe_roots=[], extension_responses=[pape.Response])
