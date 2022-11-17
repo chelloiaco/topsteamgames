@@ -45,25 +45,23 @@ if os.getenv('ENV') == 'dev':
 else:
     # Fix for SQLALchemy 1.4.x not connecting to Heroku Postgres
     uri = os.getenv('DATABASE_URL')
-
     if uri.startswith("postgres://"):
         uri = uri.replace("postgres://", "postgresql://", 1)
 
     app.config.update(
         DATABASE_URI=uri,
+        SESSION_TYPE='filesystem',
         TIME_GAP=86400,  # 1 day in seconds
     )
 
 app.config.update(
     SECRET_KEY=os.getenv('STEAM_API_KEY'),
+    SESSION_PERMANENT=False,
     MAX_LEN_MOTD=280,  # Length of a tweet
     MAX_LEN_NOTE=5000,
     DEFAULT_MIN_GAME_TIME=300,
 )
 
-# Configure session to use filesystem (instead of signed cookies)
-app.config["SESSION_PERMANENT"] = False
-app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 # setup flask-openid
