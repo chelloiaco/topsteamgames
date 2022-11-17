@@ -70,8 +70,8 @@
             <tbody>
             <tr>
                 <td>
-                    <form action="/save_note" method="POST">
-                        <textarea name="note" class="form-control motd-field note-field" maxlength="{{ config.MAX_LEN_NOTE }}"
+                    <form action="/save_note" method="POST" accept-charset="utf-8">
+                        <textarea id="note_input" oninput="cleanInput(event)" name="note" class="form-control motd-field note-field" maxlength="{{ config.MAX_LEN_NOTE }}"
                                   placeholder="Enter any personal game notes here">{{ player_notes.msg }}</textarea>
                         <input type=hidden name="appid" value="{{ game.appid }}">
                         <input class="btn btn-primary btn-motd" type="submit" value="Save">
@@ -95,8 +95,8 @@
                         {% endif %}
                         {% if can_post %}
                             <p>Congratulations! You are the player with the most amount of playtime on this game!</p>
-                            <form action="/post_motd" method="POST">
-                                <textarea name="motd" class="form-control motd-field" maxlength="{{ config.MAX_LEN_MOTD }}"
+                            <form action="/post_motd" method="POST" accept-charset="utf-8">
+                                <textarea id="motd_input" oninput="cleanInput(event)" name="motd" class="form-control motd-field" maxlength="{{ config.MAX_LEN_MOTD }}"
                                           placeholder="Enter a Message Of The Day you'd like everyone to see!"></textarea>
                                 <input type=hidden name="appid" value="{{ game.appid }}">
                                 <input class="btn btn-primary btn-motd" type="submit" value="Post">
