@@ -14,6 +14,7 @@
 
 import datetime
 import json
+import logging
 import os
 import time
 import urllib.request
@@ -32,6 +33,14 @@ from flask_session import Session
 
 # setup flask
 app = Flask(__name__)
+
+app.config.update(
+    SECRET_KEY=os.getenv('STEAM_API_KEY'),
+    MAX_LEN_MOTD=280,  # Length of a tweet
+    MAX_LEN_NOTE=5000,
+    DEFAULT_MIN_GAME_TIME=300,
+)
+
 if os.getenv('ENV') == 'dev':
     from dotenv import load_dotenv
 
@@ -42,6 +51,9 @@ if os.getenv('ENV') == 'dev':
         TIME_GAP=30,  # 1 day in seconds
         TEMPLATES_AUTO_RELOAD=True,
     )
+
+    app.logger.setLevel(logging.DEBUG)
+
 else:
     # Fix for SQLALchemy 1.4.x not connecting to Heroku Postgres
     uri = os.getenv('DATABASE_URL')
@@ -51,18 +63,11 @@ else:
     app.config.update(
         DATABASE_URI=uri,
         SESSION_TYPE='filesystem',
+        SESSION_PERMANENT=False,
         TIME_GAP=86400,  # 1 day in seconds
     )
 
-app.config.update(
-    SECRET_KEY=os.getenv('STEAM_API_KEY'),
-    SESSION_PERMANENT=False,
-    MAX_LEN_MOTD=280,  # Length of a tweet
-    MAX_LEN_NOTE=5000,
-    DEFAULT_MIN_GAME_TIME=300,
-)
-
-Session(app)
+    Session(app)
 
 # setup flask-openid
 oid = OpenID(app, safe_roots=[], extension_responses=[pape.Response])
@@ -269,7 +274,7 @@ def validate_login(resp):
 
 @app.route('/logout')
 def logout():
-    session.pop('openid', None)
+    session.clear()
     flash(u'You have been signed out')
     return redirect('/')
 
@@ -315,7 +320,7 @@ def game():
             appid = int(request.args['appid'])
 
             # Get top msg (MOTD)
-            top_msg_query = TopMessages.query.filter_by(appid=appid, player_steamid=steamid)
+            top_msg_query = TopMessages.query.filter_by(appid=appid)
             top_msg = top_msg_query.order_by(TopMessages.timestamp.desc()).first()
 
             # Get top player
@@ -358,7 +363,9 @@ def game():
 
                 if int(session[f'top_player_owned_game_{appid}']['playtime_forever']) < int(
                         session[f'player_owned_game{appid}']['playtime_forever']):
-                    # Substitute on the table
+                    # Substitute on the tables
+                    [db_session.delete(q) for q in
+                     TopMessages.query.filter_by(appid=appid, player_steamid=top_player_id).all()]
                     [db_session.delete(q) for q in Games.query.filter_by(appid=appid).all()]
 
                     db_session.add(Games(appid=appid, top_player_steamid=steamid))

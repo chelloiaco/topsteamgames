@@ -39,7 +39,9 @@
     <div class="tab table">
         <button class="tablinks btn-tab active" onclick="openTab(event, 'News')">News</button>
         <button class="tablinks btn-tab" onclick="openTab(event, 'My Notes')">My Notes</button>
+        {% if top_player.steamid | int == steamid %}
         <button class="tablinks btn-tab" onclick="openTab(event, 'MOTD')">MOTD 🌟</button>
+        {% endif %}
     </div>
     <div id="News" class="table-responsive-xl tabcontent">
         <table class="table table-dark table-striped">
