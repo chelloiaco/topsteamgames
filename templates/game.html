@@ -21,7 +21,8 @@
                 <td class="p-0" >{{ top_player.personaname }}</td>
             </tr>
             <tr>
-                <td class="p-0" style="text-align: left;"><h6>{{ ' %0.2f' | format(top_player.playtime / 60) }} h</h6></td>
+                {% set top_player_playtime = top_player['playtime_%d' | format(game.appid)] %}
+                <td class="p-0" style="text-align: left;"><h6>{{ ' %0.2f' | format(top_player_playtime / 60) }} h</h6></td>
             </tr>
         </table>
             {% if top_msg %}

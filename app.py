@@ -336,10 +336,11 @@ def game():
             # Get top player's summaries
             get_top_player = "http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002"
 
-            if 'top_player_summaries' not in session:
+            if f'top_player_summaries{top_player_id}' not in session:
                 with urllib.request.urlopen(
                         f"{get_top_player}/?key={app.config['SECRET_KEY']}&steamids={top_player_id}") as top_player_url:
-                    session.update(top_player_summaries=json.load(top_player_url)['response']['players'][0])
+                    session.update(
+                        {f'top_player_summaries{top_player_id}': json.load(top_player_url)['response']['players'][0]})
 
             # Get current player's playtime to crosscheck with top
             get_owned_games = "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001"
@@ -358,8 +359,8 @@ def game():
                         session.update(
                             {f'top_player_owned_game_{appid}': json.load(top_player_url)['response']['games'][0]})
 
-                session['top_player_summaries'].update(
-                    playtime=session[f'top_player_owned_game_{appid}']['playtime_forever'])
+                session[f'top_player_summaries{top_player_id}'].update(
+                    {f'playtime_{appid}': session[f'top_player_owned_game_{appid}']['playtime_forever']})
 
                 if int(session[f'top_player_owned_game_{appid}']['playtime_forever']) < int(
                         session[f'player_owned_game{appid}']['playtime_forever']):
@@ -411,7 +412,7 @@ def game():
             return render_template('game.html',
                                    steamid=steamid,
                                    player_notes=player_notes,
-                                   top_player=session.get('top_player_summaries', {}),
+                                   top_player=session.get(f'top_player_summaries{top_player_id}', {}),
                                    top_msg=top_msg,
                                    appid=appid,
                                    game=session.get(f'player_owned_game{appid}', {}),
