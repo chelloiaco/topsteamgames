@@ -1,17 +1,3 @@
-#!/bin/env python
-# -*- coding: utf-8 -*-
-"""
-    OpenID Example
-    ~~~~~~~~~~~~~~
-
-    This simple application shows how to integrate OpenID in your application.
-
-    This example requires SQLAlchemy as a dependency.
-
-    :copyright: (c) 2010 by Armin Ronacher.
-    :license: BSD, see LICENSE for more details.
-"""
-
 import datetime
 import json
 import logging
@@ -49,8 +35,8 @@ if os.getenv('ENV') == 'dev':
     load_dotenv()
 
     app.config.update(
-        DATABASE_URI=os.getenv('DATABASE_URI_DEV'),
-        TIME_GAP=30,  # 1 day in seconds
+        DATABASE_URI="postgresql://postgres:987654321@localhost/marcelo-project",
+        TIME_GAP=30,  # 30 seconds
         TEMPLATES_AUTO_RELOAD=True,
     )
 
@@ -162,8 +148,8 @@ class GamesNotes(Base):
     """
     __tablename__ = 'games_notes'
     msg_id = Column(Integer, primary_key=True)
-    appid = Column(BigInteger, ForeignKey("games.appid"))
-    player_steamid = Column(BigInteger, ForeignKey("players.steamid"))
+    appid = Column(BigInteger)
+    player_steamid = Column(BigInteger)
     msg = Column(String(app.config['MAX_LEN_NOTE']))
 
     def __init__(self, appid, player_steamid, msg):
@@ -183,8 +169,8 @@ class TopMessages(Base):
     """
     __tablename__ = 'top_messages'
     msg_id = Column(Integer, primary_key=True)
-    appid = Column(BigInteger, ForeignKey("games.appid"))
-    player_steamid = Column(BigInteger, ForeignKey("players.steamid"))
+    appid = Column(BigInteger)
+    player_steamid = Column(BigInteger)
     msg = Column(String(app.config['MAX_LEN_MOTD']))
     timestamp = Column(BigInteger)
 
@@ -319,30 +305,10 @@ def game():
         if 'appid' in request.args:
             appid = int(request.args['appid'])
 
-            # Get top msg (MOTD)
-            top_msg_query = TopMessages.query.filter_by(appid=appid)
-            top_msg = top_msg_query.order_by(TopMessages.timestamp.desc()).first()
+            # Don't allow user to flex by default, we'll check this before loading the page
+            can_flex = False
 
-            # Get top player
-            top_player_query = Games.query.filter_by(appid=appid).first()
-
-            if not top_player_query:
-                db_session.add(Games(appid, steamid))
-
-            # Redo the query just in case there wasn't a top_player before
-            top_player_query = Games.query.filter_by(appid=appid).first()
-            top_player_id = top_player_query.top_player_steamid
-
-            # Get top player's summaries
-            get_top_player = "http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002"
-
-            if f'top_player_summaries{top_player_id}' not in session:
-                with urllib.request.urlopen(
-                        f"{get_top_player}/?key={app.config['SECRET_KEY']}&steamids={top_player_id}") as top_player_url:
-                    session.update(
-                        {f'top_player_summaries{top_player_id}': json.load(top_player_url)['response']['players'][0]})
-
-            # Get current player's playtime to crosscheck with top
+            # Get current player's playtime
             get_owned_games = "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001"
             args = f"appids_filter[0]={appid}&include_appinfo=true&format=json"
 
@@ -351,8 +317,28 @@ def game():
                         f"{get_owned_games}/?key={app.config['SECRET_KEY']}&steamid={steamid}&{args}") as url:
                     session.update({f'player_owned_game{appid}': json.load(url)['response']['games'][0]})
 
-            # Check if current player is top player
-            if Games.query.filter_by(appid=appid).first():
+            # Get top msg (FLEX)
+            top_msg_query = TopMessages.query.filter_by(appid=appid)
+            top_msg = top_msg_query.order_by(TopMessages.timestamp.desc()).first()
+
+            # Get top player
+            top_player_query = Games.query.filter_by(appid=appid).first()
+            top_player_id = None
+
+            if top_player_query:
+                top_player_id = top_player_query.top_player_steamid
+
+                # Get top player's summaries
+                get_top_player = "http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002"
+
+                if f'top_player_summaries{top_player_id}' not in session:
+                    with urllib.request.urlopen(
+                            f"{get_top_player}/?key={app.config['SECRET_KEY']}&steamids={top_player_id}") as top_player_url:
+                        session.update(
+                            {f'top_player_summaries{top_player_id}': json.load(top_player_url)['response']['players'][
+                                0]})
+
+                # Check if current player is top player
                 if f'top_player_owned_game_{appid}' not in session:
                     with urllib.request.urlopen(
                             f"{get_owned_games}/?key={app.config['SECRET_KEY']}&steamid={top_player_id}&{args}") as top_player_url:
@@ -364,15 +350,14 @@ def game():
 
                 if int(session[f'top_player_owned_game_{appid}']['playtime_forever']) < int(
                         session[f'player_owned_game{appid}']['playtime_forever']):
-                    # Substitute on the tables
-                    [db_session.delete(q) for q in
-                     TopMessages.query.filter_by(appid=appid, player_steamid=top_player_id).all()]
-                    [db_session.delete(q) for q in Games.query.filter_by(appid=appid).all()]
+                    # Allow them to flex
+                    can_flex = True
 
-                    db_session.add(Games(appid=appid, top_player_steamid=steamid))
+                elif top_player_id == steamid:
+                    can_flex = True
 
             else:
-                db_session.add(Games(appid=appid, top_player_steamid=steamid))
+                can_flex = True
 
             # Get player's notes
             player_notes = GamesNotes.query.filter_by(appid=appid,
@@ -411,6 +396,7 @@ def game():
 
             return render_template('game.html',
                                    steamid=steamid,
+                                   can_flex=can_flex,
                                    player_notes=player_notes,
                                    top_player=session.get(f'top_player_summaries{top_player_id}', {}),
                                    top_msg=top_msg,
@@ -431,28 +417,63 @@ def update_playtime():
     return redirect('/games_index')
 
 
-@app.route('/post_motd', methods=['POST'])
-def post_motd():
+@app.route('/post_flexmsg', methods=['POST'])
+def post_flexmsg():
+    if 'openid' not in session:
+        return redirect('/login')
+
     if request.method == 'POST':
-        motd = request.form.get('motd', None)
+        steamid = int(session['openid'].split('/')[-1])
+        flexmsg = request.form.get('flexmsg', None)
         appid = request.form.get('appid', None)
 
-        if motd and appid:
-            steamid = session['openid'].split('/')[-1]
+        if not flexmsg and not appid:
+            return redirect(f'/game?appid={appid}')
 
-            # Check last timestamp
-            can_post = False
-            timestamp = TopMessages.query.filter_by(appid=appid).first()
+        # Check last timestamp
+        timestamp = TopMessages.query.filter_by(appid=appid).first()
 
-            if not timestamp:
+        can_post = False
+
+        if not timestamp:
+            can_post = True
+
+        elif time.time() - timestamp.timestamp >= app.config['TIME_GAP']:
+            # Enough time has passed, get info about current top player
+            top_player_query = Games.query.filter_by(appid=appid).first()
+
+            # Get current player's playtime to crosscheck with top
+            get_owned_games = "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001"
+            args = f"appids_filter[0]={appid}&include_appinfo=true&format=json"
+
+            if not top_player_query:
                 can_post = True
+
             else:
-                if time.time() - timestamp.timestamp > app.config['TIME_GAP']:
+                # There is a previous top player, check their data against current player
+                top_player_id = top_player_query.top_player_steamid
+
+                if f'top_player_owned_game_{appid}' not in session:
+                    with urllib.request.urlopen(
+                            f"{get_owned_games}/?key={app.config['SECRET_KEY']}&steamid={top_player_id}&{args}") as top_player_url:
+                        session.update(
+                            {f'top_player_owned_game_{appid}': json.load(top_player_url)['response']['games'][0]})
+
+                session[f'top_player_summaries{top_player_id}'].update(
+                    {f'playtime_{appid}': session[f'top_player_owned_game_{appid}']['playtime_forever']})
+
+                # Check if current player is top player
+                if int(session[f'top_player_owned_game_{appid}']['playtime_forever']) <= int(
+                        session[f'player_owned_game{appid}']['playtime_forever']):
+                    # They are, substitute on the Games table
                     can_post = True
 
-            if can_post:
-                # Enough time has passed, allow user to post
-                db_session.add(TopMessages(appid=appid, player_steamid=steamid, msg=motd, timestamp=time.time()))
+        if can_post:
+            [db_session.delete(q) for q in Games.query.filter_by(appid=appid).all()]
+            Games.query.filter_by(appid=appid).all()  # Need to do this to refresh DB
+            db_session.add(Games(appid=appid, top_player_steamid=steamid))
+            db_session.add(TopMessages(appid=appid, player_steamid=steamid, msg=flexmsg, timestamp=time.time()))
+            TopMessages.query.filter_by(appid=appid).all()  # Need to do this to refresh DB
 
         return redirect(f'/game?appid={appid}')
 

@@ -203,19 +203,19 @@ h6 {
     display: block;
 }
 
-.motd {
+.flexmsg {
     margin: auto;
     max-width: 30rem;
     text-align: center;
 }
 
-.motd-field, .motd-field:focus {
+.flexmsg-field, .flexmsg-field:focus {
     min-height: 10rem !important;
     background: #1d2124;
     color: #bbc6ce;
 }
 
-.btn-motd {
+.btn-flexmsg {
     margin: .25rem auto 0 calc(100% - 3.5rem);
 }
 

@@ -13,7 +13,7 @@
 <div class="content">
     <div>
         {% if top_player %}
-        <table class="motd mb-2">
+        <table class="flexmsg mb-2">
             <tr>
                 <td rowspan="2">Top player:</td>
                 <td rowspan="2"><a title="{{ top_player.personaname }}" href="{{ top_player.profileurl }}" target="_blank">
@@ -26,7 +26,7 @@
             </tr>
         </table>
             {% if top_msg %}
-                <p class="italic motd">"{{ top_msg.msg }}"</p>
+                <p class="italic flexmsg">"{{ top_msg.msg }}"</p>
                 <br>
             {% endif %}
         {% endif %}
@@ -40,8 +40,8 @@
     <div class="tab table">
         <button class="tablinks btn-tab active" onclick="openTab(event, 'News')">News</button>
         <button class="tablinks btn-tab" onclick="openTab(event, 'My Notes')">My Notes</button>
-        {% if top_player.steamid | int == steamid %}
-        <button class="tablinks btn-tab" onclick="openTab(event, 'MOTD')">MOTD 🌟</button>
+        {% if can_flex %}
+        <button class="tablinks btn-tab" onclick="openTab(event, 'Flex')">Flex 🌟</button>
         {% endif %}
     </div>
     <div id="News" class="table-responsive-xl tabcontent">
@@ -71,18 +71,18 @@
             <tr>
                 <td>
                     <form action="/save_note" method="POST" accept-charset="utf-8">
-                        <textarea id="note_input" oninput="cleanInput(event)" name="note" class="form-control motd-field note-field" maxlength="{{ config.MAX_LEN_NOTE }}"
+                        <textarea id="note_input" oninput="cleanInput(event)" name="note" class="form-control flexmsg-field note-field" maxlength="{{ config.MAX_LEN_NOTE }}"
                                   placeholder="Enter any personal game notes here">{{ player_notes.msg }}</textarea>
                         <input type=hidden name="appid" value="{{ game.appid }}">
-                        <input class="btn btn-primary btn-motd" type="submit" value="Save">
+                        <input class="btn btn-primary btn-flexmsg" type="submit" value="Save">
                     </form>
                 </td>
             </tr>
             </tbody>
         </table>
     </div>
-    {% if top_player.steamid | int == steamid %}
-        <div id="MOTD" class="tabcontent" style="display: none;">
+    {% if can_flex %}
+        <div id="Flex" class="tabcontent" style="display: none;">
             <table class="table table-dark table-striped">
                 <tbody>
                 <tr>
@@ -90,21 +90,21 @@
                         {% set can_post = False %}
                         {% if not top_msg %}
                             {% set can_post = True %}
-                        {% elif time_now() - top_msg.timestamp > config['TIME_GAP'] %}
+                        {% elif time_now() - top_msg.timestamp >= config['TIME_GAP'] %}
                             {% set can_post = True %}
                         {% endif %}
                         {% if can_post %}
                             <p>Congratulations! You are the player with the most amount of playtime on this game!</p>
-                            <form action="/post_motd" method="POST" accept-charset="utf-8">
-                                <textarea id="motd_input" oninput="cleanInput(event)" name="motd" class="form-control motd-field" maxlength="{{ config.MAX_LEN_MOTD }}"
-                                          placeholder="Enter a Message Of The Day you'd like everyone to see!"></textarea>
+                            <form action="/post_flexmsg" method="POST" accept-charset="utf-8">
+                                <textarea id="flexmsg_input" oninput="cleanInput(event)" name="flexmsg" class="form-control flexmsg-field" maxlength="{{ config.MAX_LEN_MOTD }}"
+                                          placeholder="Enter a flex to show everyone that you're the player with the most amount of playtime on this website!"></textarea>
                                 <input type=hidden name="appid" value="{{ game.appid }}">
-                                <input class="btn btn-primary btn-motd" type="submit" value="Post">
+                                <input class="btn btn-primary btn-flexmsg" type="submit" value="Post">
                             </form>
                         {% else %}
                             {% set timedelta = top_msg.timestamp  + config['TIME_GAP'] - time_now() %}
-                            <h4>Can't Post a new MOTD</h4>
-                            <p>Sorry, {{ "%.2f"|format(timedelta / 3600) }} hours left until a new <span class="italic">Message of The Day</span> can be posted for this game.</p>
+                            <h4>Can't Flex Yet!</h4>
+                            <p>We know, you're awesome, but there's still {{ "%.2f"|format(timedelta / 3600) }} hours left until Flexing is allowed again for this game.</p>
                         {% endif %}
                     </td>
                 </tr>
