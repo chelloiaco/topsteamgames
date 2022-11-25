@@ -1,6 +1,12 @@
 {% extends "layout.html" %}
 {% block title %}Sign in{% endblock %}
-{% block h1 %}<h1 class="center middle"> Sign in to use </h1>{% endblock %}
+{% block h1 %}
+  <div class="center middle">
+  <h1>My most played games</h1>
+  <br>
+  <h3>Sign in to use</h3>
+  </div>
+{% endblock %}
 {% block body %}
   <form class="center" action="" method="post">
     {% if error %}<p class=error><strong>Error:</strong> {{ error }}</p>{% endif %}
