@@ -331,11 +331,11 @@ def game():
                 # Get top player's summaries
                 get_top_player = "http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002"
 
-                if f'top_player_summaries{top_player_id}' not in session:
+                if f'top_player_summaries_{top_player_id}' not in session:
                     with urllib.request.urlopen(
                             f"{get_top_player}/?key={app.config['SECRET_KEY']}&steamids={top_player_id}") as top_player_url:
                         session.update(
-                            {f'top_player_summaries{top_player_id}': json.load(top_player_url)['response']['players'][
+                            {f'top_player_summaries_{top_player_id}': json.load(top_player_url)['response']['players'][
                                 0]})
 
                 # Check if current player is top player
@@ -345,7 +345,7 @@ def game():
                         session.update(
                             {f'top_player_owned_game_{appid}': json.load(top_player_url)['response']['games'][0]})
 
-                session[f'top_player_summaries{top_player_id}'].update(
+                session[f'top_player_summaries_{top_player_id}'].update(
                     {f'playtime_{appid}': session[f'top_player_owned_game_{appid}']['playtime_forever']})
 
                 if int(session[f'top_player_owned_game_{appid}']['playtime_forever']) < int(
@@ -398,7 +398,7 @@ def game():
                                    steamid=steamid,
                                    can_flex=can_flex,
                                    player_notes=player_notes,
-                                   top_player=session.get(f'top_player_summaries{top_player_id}', {}),
+                                   top_player=session.get(f'top_player_summaries_{top_player_id}', {}),
                                    top_msg=top_msg,
                                    appid=appid,
                                    game=session.get(f'player_owned_game{appid}', {}),
@@ -459,7 +459,7 @@ def post_flexmsg():
                         session.update(
                             {f'top_player_owned_game_{appid}': json.load(top_player_url)['response']['games'][0]})
 
-                session[f'top_player_summaries{top_player_id}'].update(
+                session[f'top_player_summaries_{top_player_id}'].update(
                     {f'playtime_{appid}': session[f'top_player_owned_game_{appid}']['playtime_forever']})
 
                 # Check if current player is top player
