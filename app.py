@@ -349,7 +349,7 @@ def game():
                     {f'playtime_{appid}': session[f'top_player_owned_game_{appid}']['playtime_forever']})
 
                 if int(session[f'top_player_owned_game_{appid}']['playtime_forever']) < int(
-                        session[f'player_owned_game{appid}']['playtime_forever']):
+                        session[f'player_owned_game_{appid}']['playtime_forever']):
                     # Allow them to flex
                     can_flex = True
 
