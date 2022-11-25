@@ -97,7 +97,7 @@
                             <p>Congratulations! You are the player with the most amount of playtime on this game!</p>
                             <form action="/post_flexmsg" method="POST" accept-charset="utf-8">
                                 <textarea id="flexmsg_input" oninput="cleanInput(event)" name="flexmsg" class="form-control flexmsg-field" maxlength="{{ config.MAX_LEN_MOTD }}"
-                                          placeholder="Enter a flex to show everyone that you're the player with the most amount of playtime on this website!"></textarea>
+                                          placeholder="Enter a flex to show everyone that you're the top player on this website!"></textarea>
                                 <input type=hidden name="appid" value="{{ game.appid }}">
                                 <input class="btn btn-primary btn-flexmsg" type="submit" value="Post">
                             </form>
