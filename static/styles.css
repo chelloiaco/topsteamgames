@@ -155,8 +155,14 @@ h6 {
 }
 
 .news img {
-    max-width: 100%;
+    max-width: 100% !important;
+    max-height: 100% !important;
     margin: 5px 0;
+}
+
+.news img[width]:not([width=""]), img[height]:not([height=""]){
+    width: 100% !important;
+    height: 100% !important;
 }
 
 /* Style the header */
