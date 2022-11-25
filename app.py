@@ -22,7 +22,7 @@ app = Flask(__name__)
 
 app.config.update(
     SECRET_KEY=os.getenv('STEAM_API_KEY'),
-    MAX_LEN_MOTD=280,  # Length of a tweet
+    MAX_LEN_FLEXMSG=280,  # Length of a tweet
     MAX_LEN_NOTE=5000,
     SESSION_TYPE='filesystem',
     SESSION_PERMANENT=False,
@@ -171,7 +171,7 @@ class TopMessages(Base):
     msg_id = Column(Integer, primary_key=True)
     appid = Column(BigInteger)
     player_steamid = Column(BigInteger)
-    msg = Column(String(app.config['MAX_LEN_MOTD']))
+    msg = Column(String(app.config['MAX_LEN_FLEXMSG']))
     timestamp = Column(BigInteger)
 
     def __init__(self, appid, player_steamid, msg, timestamp):
