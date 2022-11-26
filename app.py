@@ -315,7 +315,7 @@ def game():
             if f'player_owned_game_{appid}' not in session:
                 with urllib.request.urlopen(
                         f"{get_owned_games}/?key={app.config['SECRET_KEY']}&steamid={steamid}&{args}") as url:
-                    session.update({f'player_owned_game{appid}': json.load(url)['response']['games'][0]})
+                    session.update({f'player_owned_game_{appid}': json.load(url)['response']['games'][0]})
 
             # Get top msg (FLEX)
             top_msg_query = TopMessages.query.filter_by(appid=appid)
