@@ -401,7 +401,7 @@ def game():
                                    top_player=session.get(f'top_player_summaries_{top_player_id}', {}),
                                    top_msg=top_msg,
                                    appid=appid,
-                                   game=session.get(f'player_owned_game{appid}', {}),
+                                   game=session.get(f'player_owned_game_{appid}', {}),
                                    news_data=session.get(f'steam_news_{appid}', {}))
 
     return redirect('/')
@@ -464,7 +464,7 @@ def post_flexmsg():
 
                 # Check if current player is top player
                 if int(session[f'top_player_owned_game_{appid}']['playtime_forever']) <= int(
-                        session[f'player_owned_game{appid}']['playtime_forever']):
+                        session[f'player_owned_game_{appid}']['playtime_forever']):
                     # They are, substitute on the Games table
                     can_post = True
 
